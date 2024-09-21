@@ -1,37 +1,46 @@
-// Функція для збереження значень полів у локальне сховище
+const FEEDBACK_FORM_LS = 'feedback-form-state';
 const form = document.querySelector('.feedback-form');
 
-// Відновлення значень полів з локального сховища при завантаженні сторінки
-document.addEventListener('DOMContentLoaded', () => {
-    const savedEmail = localStorage.getItem('email');
-    const savedMessage = localStorage.getItem('message');
+window.addEventListener('DOMContentLoaded', checkLocalStorage);
+form.addEventListener('input', handleFormValues);
+form.addEventListener('submit', handleFormSubmit);
 
-    if (savedEmail) {
-        form.email.value = savedEmail;
-    }
-    if (savedMessage) {
-        form.message.value = savedMessage;
-    }
-});
+let formData = {
+  email: '',
+  message: '',
+};
 
-// Збереження значень полів у локальне сховище при введенні
-form.addEventListener('input', () => {
-    localStorage.setItem('email', form.email.value);
-    localStorage.setItem('message', form.message.value);
-});
+function handleFormValues() {
+  const emailValue = form.elements.email.value.trim();
+  const textAreaValue = form.elements.message.value.trim();
 
-// Очистка локального сховища при відправленні форми
-form.addEventListener('submit', (event) => {
-    event.preventDefault(); // Запобігання перезавантаженню сторінки
-    console.log('Form submitted:', {
-        email: form.email.value,
-        message: form.message.value,
-    });
+  formData.email = emailValue;
+  formData.message = textAreaValue;
 
-    // Очищення локального сховища після відправлення
-    localStorage.removeItem('email');
-    localStorage.removeItem('message');
+  localStorage.setItem(FEEDBACK_FORM_LS, JSON.stringify(formData));
+}
 
-    // Очищення полів форми
-    form.reset();
-});
+function checkLocalStorage() {
+  const valueLS = localStorage.getItem(FEEDBACK_FORM_LS);
+
+  if (valueLS) {
+    const saveData = JSON.parse(valueLS);
+    formData = { ...formData, ...saveData };
+
+    form.elements.email.value = formData.email || '';
+    form.elements.message.value = formData.message || '';
+  }
+}
+
+function handleFormSubmit(event) {
+  event.preventDefault();
+  if (formData.email === '' || formData.message === '') {
+    alert('Fill please all fields');
+    return;
+  } else {
+    console.log(formData);
+  }
+  localStorage.removeItem(FEEDBACK_FORM_LS);
+  form.reset();
+  formData = { email: '', message: '' };
+}
